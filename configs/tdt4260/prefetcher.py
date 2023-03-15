@@ -27,6 +27,8 @@ args = parser.parse_args()
 
 
 iteration = args.iteration
+for x in benchmarks:
+    print(x.bin)
 benchmark = benchmarks[iteration]
 
 #args.maxinsts = str(int(benchmark.ckpt_inst) + 100000000)
@@ -39,7 +41,7 @@ args.checkpoint_restore = 1
 
 #args.cpu_type = "AtomicSimpleCPU"
 args.cpu_type = "O3CPU"
-args.mem_type = "DDR4_2400_4x16"
+args.mem_type = "DDR4_2400_8x8"
 
 args.caches = True
 args.l2cache = True
@@ -47,18 +49,18 @@ args.l3cache = True
 
 args.l1d_size = "48KiB"
 args.l1d_assoc = 12
-args.l1d_hwp_type = "TDTPrefetcher"
+args.l1d_hwp_type = "NoPrefetcher"
 
 args.l1i_size = "32KiB"
-args.l1i_hwp_type = "TDTPrefetcher"
+args.l1i_hwp_type = "NoPrefetcher"
 
 args.l2_size = "1280KiB" #1.25MiB
 args.l2_assoc = 20
-args.l2_hwp_type = "TDTPrefetcher"
+args.l2_hwp_type = "NoPrefetcher"
 
 args.l3_size = "3MiB"
 args.l3_assoc = 12
-args.l3_hwp_type = "TDTPrefetcher"
+args.l3_hwp_type = "Bingo2"
 
 
 num_cpus = 1
@@ -68,7 +70,7 @@ cpu.numThreads = 1
 
 system = System(cpu = [cpu(cpu_id=0)],
                 mem_mode = mem,
-                mem_ranges = [AddrRange("3GB")],
+                mem_ranges = [AddrRange("8GB")],
                 cache_line_size = "64")
 
 system.voltage_domain = VoltageDomain(voltage = "3.3V")

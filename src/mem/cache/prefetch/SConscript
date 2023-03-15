@@ -35,10 +35,17 @@ SimObject('Prefetcher.py', sim_objects=[
     'MultiPrefetcher',
     'StridePrefetcherHashedSetAssociative',
     'TDTPrefetcher',
-    'TDTPrefetcherHashedSetAssociative'])
+    'TDTPrefetcherHashedSetAssociative',
+    'Bingo2HashedSetAssociative',
+    'NoPrefetcher',
+    'BingoPrefetcher',
+    'Bingo2'])
 
 Source('base.cc')
 Source('stride.cc')
 Source('queued.cc')
 Source('multi.cc')
 Source('tdt_prefetcher.cc')
+Source('no_prefetcher.cc')
+Source('bingo.cc')
+Source('bingo2.cc')

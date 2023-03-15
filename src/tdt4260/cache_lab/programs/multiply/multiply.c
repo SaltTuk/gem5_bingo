@@ -16,7 +16,11 @@
 #include <unistd.h>
 
 /* Size of the matrices to multiply */
-#define SIZE 200
+#define SIZE 250
+
+#define GEM5_DUMPSTATS  __asm__ __volatile__ (".word 0x040F; .word 0x0041;" : : "D" (0), "S" (0) :"memory")
+#define GEM5_RESETSTATS __asm__ __volatile__ (".word 0x040F; .word 0x0040;" : : "D" (0), "S" (0) :"memory")
+
 
 /* HINT: The Makefile allows you to specify L1 and L2 block sizes as
  * compile time options.These may be specified when calling make,
@@ -32,6 +36,8 @@ static double mat_b[SIZE][SIZE];
 static double mat_c[SIZE][SIZE];
 static double mat_ref[SIZE][SIZE];
 
+static double mat_temp[SIZE][SIZE];
+
 /**
  * Matrix multiplication. This is the procedure you should try to
  * optimize.
@@ -43,14 +49,22 @@ matmul_opt()
          * here. It should calculate mat_c := mat_a * mat_b. See
          * matmul_ref() for a reference solution.
          */
+
+        // take the transpose of mat_b, store it to mat_temp
+        for(int i = 0; i < SIZE; i++){
+          for(int j = 0; j < SIZE; j++)
+            mat_temp[i][j] = mat_b[j][i];
+        }
+
         int i, j, k;
 
         for (j = 0; j < SIZE; j++) {
-            for (i = 0; i < SIZE; i++) {
-                for (k = 0; k < SIZE; k++) {
-                    mat_c[i][j] += mat_a[i][k] * mat_b[k][j];
+                for (i = 0; i < SIZE; i++) {
+                        for (k = 0; k < SIZE; k++) {
+                                // use mat_temp instead of mat_b
+                                mat_c[i][j] += mat_a[i][k] * mat_temp[j][k];
+                        }
                 }
-            }
         }
 }
 
@@ -139,7 +153,9 @@ run_multiply(int verify)
         time_start = get_time();
 
         /* mat_c = mat_a * mat_b */
+        GEM5_RESETSTATS;
         matmul_opt();
+        GEM5_DUMPSTATS;
 
         time_stop = get_time();
         printf("Time: %.4f\n", time_stop - time_start);

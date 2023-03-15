@@ -15,6 +15,7 @@ for x in range(num_benchmarks):
     if (os.path.exists(f"prefetcher_out_{x}")):
         shutil.rmtree(f"prefetcher_out_{x}")
     run_ref = f"{gem5_bin} -r --outdir={output_dir} {config} --iteration {x}"
+    print(run_ref)
     os.system(run_ref)
     os.chdir(cwd)
 

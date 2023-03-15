@@ -70,6 +70,8 @@ class TDTPrefetcher : public Queued
 
         void invalidate() override;
 
+        std::vector<Addr> accesses;
+
     };
 
     typedef AssociativeSet<TDTEntry> PCTable;

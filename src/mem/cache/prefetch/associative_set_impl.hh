@@ -43,7 +43,7 @@ AssociativeSet<Entry>::AssociativeSet(int assoc, int num_entries,
     replacementPolicy(rpl_policy), entries(numEntries, init_value)
 {
     fatal_if(!isPowerOf2(num_entries), "The number of entries of an "
-             "AssociativeSet<> must be a power of 2");
+             "AssociativeSet<> must be a power of 2 it is %d", num_entries);
     fatal_if(!isPowerOf2(assoc), "The associativity of an AssociativeSet<> "
              "must be a power of 2");
     for (unsigned int entry_idx = 0; entry_idx < numEntries; entry_idx += 1) {
@@ -68,6 +68,17 @@ AssociativeSet<Entry>::findEntry(Addr addr, bool is_secure) const
             return entry;
         }
     }
+
+    Addr offsetMask = 0xFFFFFFFFFFF;
+
+    for (const auto& location : selected_entries) {
+        Entry* entry = static_cast<Entry *>(location);
+        if (((entry->getTag() & offsetMask) == (tag & offsetMask)) && entry->isValid() &&
+            entry->isSecure() == is_secure) {
+            return entry;
+        }
+    }
+
     return nullptr;
 }
 

@@ -20,6 +20,7 @@ TDTPrefetcher::TDTEntry::TDTEntry()
 void
 TDTPrefetcher::TDTEntry::invalidate()
 {
+    accesses.clear();
     TaggedEntry::invalidate();
 }
 
@@ -57,40 +58,20 @@ TDTPrefetcher::calculatePrefetch(const PrefetchInfo &pfi,
                                  std::vector<AddrPriority> &addresses)
 {
     Addr access_addr = pfi.getAddr();
-    Addr access_pc = pfi.getPC();
-    int context = 0;
-
     // Next line prefetching
     addresses.push_back(AddrPriority(access_addr + blkSize, 0));
-
-    // Get matching storage of entries
-    // Context is 0 due to single-threaded application
-    PCTable* pcTable = findTable(context);
-
-    // Get matching entry from PC
-    TDTEntry *entry = pcTable->findEntry(access_pc, false);
-
-    // Check if you have entry
-    if (entry != nullptr) {
-        // There is an entry
-    } else {
-        // No entry
-    }
-
-    // *Add* new entry
-    // All entries exist, you must replace previous with new data
-    // Find replacement victim, update info
-    TDTEntry* victim = pcTable->findVictim(access_pc);
-    victim->lastAddr = access_addr;
-    pcTable->insertEntry(access_pc, false, victim);
 }
 
 uint32_t
 TDTPrefetcherHashedSetAssociative::extractSet(const Addr pc) const
 {
-    const Addr hash1 = pc >> 1;
-    const Addr hash2 = hash1 >> tagShift;
-    return (hash1 ^ hash2) & setMask;
+    Addr hash1 = (pc >> 32) & 0xFFFFFFFF;
+    Addr hash2 = pc & 0xFFFFFFFF;
+    uint32_t key = 0;
+    /*
+    }
+    */
+    return key & setMask;
 }
 
 Addr

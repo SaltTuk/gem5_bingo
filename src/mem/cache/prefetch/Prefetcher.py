@@ -205,3 +205,44 @@ class TDTPrefetcher(QueuedPrefetcher):
     table_replacement_policy = Param.BaseReplacementPolicy(RandomRP(),
         "Replacement policy of the PC table")
 
+class NoPrefetcher(TDTPrefetcher):
+    type = 'NoPrefetcher'
+    cxx_class = 'gem5::prefetch::NoPrefetcher'
+    cxx_header = "mem/cache/prefetch/no_prefetcher.hh"
+
+class BingoPrefetcher(TDTPrefetcher):
+    type = 'BingoPrefetcher'
+    cxx_class = 'gem5::prefetch::BingoPrefetcher'
+    cxx_header = "mem/cache/prefetch/bingo.hh"
+
+    table_assoc = Param.Int(4, "Assocaitivity of the PC table")
+    table_entries = Param.MemorySize("64", "Number of entries of the PC table")
+    table_indexing_policy = Param.BaseIndexingPolicy(
+        TDTPrefetcherHashedSetAssociative(entry_size = 1,
+        assoc = Parent.table_assoc, size = Parent.table_entries),
+        "Indexing policy of the PC table")
+
+    table_replacement_policy = Param.BaseReplacementPolicy(RandomRP(),
+        "Replacement policy of the PC table")
+
+class Bingo2HashedSetAssociative(SetAssociative):
+    type = 'Bingo2HashedSetAssociative'
+    cxx_class = 'gem5::prefetch::Bingo2HashedSetAssociative'
+    cxx_header = "mem/cache/prefetch/bingo2.hh"
+
+class Bingo2(QueuedPrefetcher):
+    type = 'Bingo2'
+    cxx_class = 'gem5::prefetch::Bingo2'
+    cxx_header = "mem/cache/prefetch/bingo2.hh"
+
+    table_assoc = Param.Int(4, "Assocaitivity of the PC table")
+    table_entries = Param.MemorySize("64", "Number of entries of the PC table")
+    table_indexing_policy = Param.BaseIndexingPolicy(
+        Bingo2HashedSetAssociative(entry_size = 1,
+        assoc = Parent.table_assoc, size = Parent.table_entries),
+        "Indexing policy of the PC table")
+
+    table_replacement_policy = Param.BaseReplacementPolicy(RandomRP(),
+        "Replacement policy of the PC table")
+
+
