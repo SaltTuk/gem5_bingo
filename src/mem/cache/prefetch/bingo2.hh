@@ -88,8 +88,9 @@ class Bingo2 : public Queued
                            std::vector<AddrPriority> &addresses) override;
 
     Addr lastAccessedPage;
-    Bingo2Entry* toBeVictim;
     Addr victimKey;
+    std::vector<Addr> newAccesses, oldAccesses;
+    int prefetchFail;
 };
 
 } //namespace prefetch

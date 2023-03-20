@@ -69,7 +69,6 @@ TDTPrefetcherHashedSetAssociative::extractSet(const Addr pc) const
     Addr hash2 = pc & 0xFFFFFFFF;
     uint32_t key = 0;
     /*
-    }
     */
     return key & setMask;
 }

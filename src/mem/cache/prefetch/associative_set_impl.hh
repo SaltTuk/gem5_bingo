@@ -68,8 +68,18 @@ AssociativeSet<Entry>::findEntry(Addr addr, bool is_secure) const
             return entry;
         }
     }
+    return nullptr;
+}
 
-    Addr offsetMask = 0xFFFFFFFFFFF;
+template<class Entry>
+Entry*
+AssociativeSet<Entry>::findEntry2(Addr addr, bool is_secure) const
+{
+    Addr tag = indexingPolicy->extractTag(addr);
+    const std::vector<ReplaceableEntry*> selected_entries =
+        indexingPolicy->getPossibleEntries(addr);
+
+    Addr offsetMask = 0xFFFFFFFF00000FC0;
 
     for (const auto& location : selected_entries) {
         Entry* entry = static_cast<Entry *>(location);
@@ -98,6 +108,34 @@ AssociativeSet<Entry>::findVictim(Addr addr)
         indexingPolicy->getPossibleEntries(addr);
     Entry* victim = static_cast<Entry*>(replacementPolicy->getVictim(
                             selected_entries));
+    // There is only one eviction for this replacement
+    invalidate(victim);
+    return victim;
+}
+
+template<class Entry>
+Entry*
+AssociativeSet<Entry>::findVictim2(Addr addr)
+{
+    // Get possible entries to be victimized
+    const std::vector<ReplaceableEntry*> selected_entries =
+        indexingPolicy->getPossibleEntries(addr);
+
+    Entry* victim = nullptr;
+    Addr tag = indexingPolicy->extractTag(addr);
+
+    for (const auto& location : selected_entries) {
+        Entry* entry = static_cast<Entry *>(location);
+        if ((entry->getTag() == tag) && entry->isValid()) {
+            victim = entry;
+        }
+    }
+
+    if (victim == nullptr){
+        victim = static_cast<Entry*>(replacementPolicy->getVictim(
+                            selected_entries));
+    }
+
     // There is only one eviction for this replacement
     invalidate(victim);
     return victim;

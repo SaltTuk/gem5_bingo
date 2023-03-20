@@ -60,7 +60,7 @@ args.l2_hwp_type = "NoPrefetcher"
 
 args.l3_size = "3MiB"
 args.l3_assoc = 12
-args.l3_hwp_type = "Bingo2"
+args.l3_hwp_type = "StridePrefetcher"
 
 
 num_cpus = 1

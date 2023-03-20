@@ -84,6 +84,8 @@ class AssociativeSet
      */
     Entry* findEntry(Addr addr, bool is_secure) const;
 
+    Entry* findEntry2(Addr addr, bool is_secure) const;
+
     /**
      * Do an access to the entry, this is required to
      * update the replacement information data.
@@ -97,6 +99,8 @@ class AssociativeSet
      * @result entry to be victimized
      */
     Entry* findVictim(Addr addr);
+
+    Entry* findVictim2(Addr addr);
 
     /**
      * Find the set of entries that could be replaced given

@@ -171,8 +171,8 @@ class StridePrefetcher(QueuedPrefetcher):
 
     degree = Param.Int(4, "Number of prefetches to generate")
 
-    table_assoc = Param.Int(4, "Associativity of the PC table")
-    table_entries = Param.MemorySize("64", "Number of entries of the PC table")
+    table_assoc = Param.Int(8, "Associativity of the PC table")
+    table_entries = Param.MemorySize("1024", "Number of entries of the PC table")
     table_indexing_policy = Param.BaseIndexingPolicy(
         StridePrefetcherHashedSetAssociative(entry_size = 1,
         assoc = Parent.table_assoc, size = Parent.table_entries),
@@ -235,14 +235,14 @@ class Bingo2(QueuedPrefetcher):
     cxx_class = 'gem5::prefetch::Bingo2'
     cxx_header = "mem/cache/prefetch/bingo2.hh"
 
-    table_assoc = Param.Int(4, "Assocaitivity of the PC table")
-    table_entries = Param.MemorySize("64", "Number of entries of the PC table")
+    table_assoc = Param.Int(8, "Assocaitivity of the PC table")
+    table_entries = Param.MemorySize("1024", "Number of entries of the PC table")
     table_indexing_policy = Param.BaseIndexingPolicy(
         Bingo2HashedSetAssociative(entry_size = 1,
         assoc = Parent.table_assoc, size = Parent.table_entries),
         "Indexing policy of the PC table")
 
-    table_replacement_policy = Param.BaseReplacementPolicy(RandomRP(),
+    table_replacement_policy = Param.BaseReplacementPolicy(LRURP(),
         "Replacement policy of the PC table")
 
 

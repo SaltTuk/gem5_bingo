@@ -25,7 +25,7 @@ Bingo2::Bingo2Entry::invalidate()
 }
 
 Bingo2::Bingo2(const Bingo2Params &params)
-    : Queued(params), lastAccessedPage(0), toBeVictim(nullptr),
+    : Queued(params), lastAccessedPage(0), victimKey(0), prefetchFail(0),
       pcTableInfo(params.table_assoc, params.table_entries,
                   params.table_indexing_policy,
                   params.table_replacement_policy)
@@ -74,33 +74,45 @@ Bingo2::calculatePrefetch(const PrefetchInfo &pfi,
     if ((access_addr & nonOffsetMask) != (lastAccessedPage & nonOffsetMask)){
         lastAccessedPage = access_addr;
 
-        if (toBeVictim != nullptr)
-            pcTable->insertEntry(victimKey, is_secure, toBeVictim);
+        if (prefetchFail){
+            Bingo2Entry* victimEntry = pcTable->findVictim(victimKey);
+            for (Addr addrPf : newAccesses)
+                victimEntry->accesses.push_back(addrPf);
+            pcTable->insertEntry(victimKey, is_secure, victimEntry);
+        }
 
-        Addr key = ((access_addr & nonBlockMask) << 32) | access_pc;
+        Addr key = (access_pc << 32) | access_addr;
 
         // Get matching entry from PC
         Bingo2Entry *entry = pcTable->findEntry(key, false);
 
+        if (entry == nullptr)
+            entry = pcTable->findEntry2(key, false);
+
         // Check if you have entry
         if (entry != nullptr) {
+            oldAccesses.clear();
             for (Addr addrPf : entry->accesses){
+                oldAccesses.push_back(((addrPf & justOffsetMask) | (lastAccessedPage & nonOffsetMask)) & nonBlockMask);
                 addresses.push_back(AddrPriority((addrPf & justOffsetMask) | (lastAccessedPage & nonOffsetMask), 0));
                 //fatal_if(true, "Caught prefetching");
             }
             pcTable->accessEntry(entry);
-            toBeVictim = nullptr;
-        } else {
-            toBeVictim = pcTable->findVictim(key);
-            victimKey = key;
-        }
-    } else {
+            prefetchFail = 0;
 
-        if (toBeVictim != nullptr){
-            std::vector<Addr> &accesses = toBeVictim->accesses;
-            Addr item = access_addr & nonBlockMask;
-            if (std::find(accesses.begin(), accesses.end(), item) == accesses.end())
-                accesses.push_back(item);
+        } else {
+            prefetchFail = 1;
+        }
+        victimKey = key;
+        newAccesses.clear();
+
+    } else {
+        Addr item = access_addr & nonBlockMask;
+        if (std::find(newAccesses.begin(), newAccesses.end(), item) == newAccesses.end())
+            newAccesses.push_back(item);
+        if (!prefetchFail){
+            if (std::find(oldAccesses.begin(), oldAccesses.end(), item) == oldAccesses.end())
+                prefetchFail = 1;
         }
     }
 }
@@ -108,13 +120,13 @@ Bingo2::calculatePrefetch(const PrefetchInfo &pfi,
 uint32_t
 Bingo2HashedSetAssociative::extractSet(const Addr pc) const
 {
-    Addr hash1 = (pc >> 32) & 0xFFFFFFFF;
-    Addr hash2 = pc & 0xFFFFFFFF;
+    uint32_t hash1 = (pc >> 26) & 0xFFFFFFC0;
+    uint32_t hash2 = (pc >> 6) & 0x3F;
+    uint32_t hash = hash1 | hash2;
     uint32_t key = 0;
-    while (hash1 > 0 || hash2 > 0){
-      key ^= hash1 ^ hash2;
-      hash1 >>= floorLog2(numSets);
-      hash2 >>= floorLog2(numSets);
+    while (hash > 0){
+      key ^= hash;
+      hash >>= floorLog2(numSets);
     }
     return key & setMask;
 }
@@ -122,7 +134,7 @@ Bingo2HashedSetAssociative::extractSet(const Addr pc) const
 Addr
 Bingo2HashedSetAssociative::extractTag(const Addr addr) const
 {
-    return addr;
+    return addr & ~((Addr)0x3F);
 }
 
 }
